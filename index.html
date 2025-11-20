@@ -1807,21 +1807,12 @@
                 item.addEventListener('click', function() {
                     const type = this.getAttribute('data-type');
                     let text = '';
-                    
-                    switch(type) {
-                        case 'edit':
-                            text = '个人信息编辑功能正在开发中，将允许您修改个人资料。';
-                            break;
-                        case 'notification':
-                            text = '通知设置功能正在开发中，将允许您自定义接收哪些通知。';
-                            break;
-                    }
-                    
+            
                     modalManager.showModal(text);
                 });
             });
             
-            // 显示首页
+            
             function showHomePage(user) {
                 document.getElementById('username-display').textContent = user.username;
                 document.getElementById('profile-username').textContent = user.username;
