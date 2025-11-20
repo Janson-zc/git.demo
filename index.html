@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetFit - 双场景融合的3D数字猫健康管理与宠物救助领养</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        :root {
+            --primary-color: #ff9eb5; /* 猫爪粉 */
+            --secondary-color: #f0f0f0; /* 浅灰 */
+            --accent-color: #7ec4cf; /* 蓝绿色 */
+            --text-color: #333;
+            --light-text: #666;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 页面通用样式 */
+        .page {
+            display: none;
+            padding: 15px;
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 头部样式 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color), #ffb6c1);
+            color: white;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: absolute;
+            left: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 10;
+        }
+
+        .page-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            margin: 0 auto;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        /* 功能网格 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .grid-item {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .grid-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .grid-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        /* 开发中提示 */
+        .dev-notice {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--light-text);
+        }
+
+        .dev-notice-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        /* 管理员面板 */
+        .admin-panel {
+            margin-top: 20px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .user-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 聊天界面样式 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 150px);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: var(--primary-color);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .cat-message {
+            background-color: #e9ecef;
+            color: var(--text-color);
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+        }
+
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* 状态卡片样式 */
+        .status-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .status-card:hover {
+            transform: translateY(-3px);
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--light-text);
+        }
+        
+        /* 救助领养页样式 */
+        .view-toggle {
+            display: flex;
+            margin-bottom: 15px;
+            background-color: #f0f0f0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .view-option {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .view-option.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .map-container {
+            height: 300px;
+            background-color: #e9f5e9;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            transform: translate(-50%, -50%);
+        }
+        
+        .rescue-marker {
+            background-color: #28a745; /* 绿色 */
+        }
+        
+        .hospital-marker {
+            background-color: #dc3545; /* 红色 */
+        }
+        
+        .location-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .location-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .location-item:last-child {
+            border-bottom: none;
+        }
+        
+        .location-info {
+            flex: 1;
+        }
+        
+        .location-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .location-details {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .location-distance {
+            text-align: right;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .location-count {
+            font-size: 12px;
+            color: #28a745;
+            margin-top: 5px;
+        }
+        
+        /* AI识病页样式 */
+        .ai-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .ai-option {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .ai-option:hover {
+            transform: translateY(-5px);
+        }
+        
+        .ai-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .free-note {
+            text-align: center;
+            color: var(--light-text);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .upload-icon {
+            font-size: 50px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--border-radius);
+            margin: 0 auto 20px;
+            display: none;
+        }
+        
+        .analysis-result {
+            display: none;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+        }
+        
+        .analysis-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .disease-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .disease-item:last-child {
+            border-bottom: none;
+        }
+        
+        .disease-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .disease-probability {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .probability-bar {
+            flex: 1;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+        }
+        
+        .probability-text {
+            font-size: 14px;
+            color: var(--light-text);
+            min-width: 40px;
+        }
+        
+        .disease-suggestion {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 登录页面 -->
+        <div id="login-page" class="page active">
+            <div class="header">
+                <div class="logo">
+                    <span>🐱</span>
+                    <span>PetFit</span>
+                </div>
+            </div>
+            
+            <div style="padding: 30px 20px;">
+                <h2 style="text-align: center; margin-bottom: 30px;">欢迎来到PetFit</h2>
+                <p style="text-align: center; margin-bottom: 30px; color: var(--light-text);">既能陪喵健康，也能助你成长</p>
+                
+                <div class="form-group">
+                    <input type="text" id="login-username" class="form-control" placeholder="用户名">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-password" class="form-control" placeholder="密码">
+                </div>
+                
+                <button id="login-btn" class="btn btn-primary btn-block">登录</button>
+                <button id="register-btn" class="btn btn-secondary btn-block">注册新账号</button>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="#" id="admin-link" style="color: var(--light-text); font-size: 14px;">管理员入口</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理员密码验证页面 -->
+        <div id="admin-auth-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="login">←</button>
+                <div class="page-title">管理员验证</div>
+            </div>
+            
+            <div style="padding: 30px 20px;">
+                <h2 style="text-align: center; margin-bottom: 30px;">管理员身份验证</h2>
+                <p style="text-align: center; margin-bottom: 30px; color: var(--light-text);">请输入管理员密码</p>
+                
+                <div class="form-group">
+                    <input type="password" id="admin-password" class="form-control" placeholder="管理员密码">
+                </div>
+                
+                <button id="admin-login-btn" class="btn btn-primary btn-block">验证</button>
+                <button id="back-to-login-from-auth" class="btn btn-secondary btn-block">返回登录</button>
+            </div>
+        </div>
+
+        <!-- 注册页面 -->
+        <div id="register-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="login">←</button>
+                <div class="page-title">注册账号</div>
+            </div>
+            
+            <div style="padding: 30px 20px;">
+                <h2 style="text-align: center; margin-bottom: 30px;">创建新账号</h2>
+                
+                <div class="form-group">
+                    <input type="text" id="reg-username" class="form-control" placeholder="用户名">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="reg-email" class="form-control" placeholder="邮箱">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="reg-password" class="form-control" placeholder="密码">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="reg-confirm-password" class="form-control" placeholder="确认密码">
+                </div>
+                
+                <button id="complete-register-btn" class="btn btn-primary btn-block">注册</button>
+                <button id="back-to-login-btn" class="btn btn-secondary btn-block">返回登录</button>
+            </div>
+        </div>
+
+        <!-- 首页 -->
+        <div id="home-page" class="page">
+            <div class="header">
+                <div class="logo">
+                    <span>🐱</span>
+                    <span>PetFit</span>
+                </div>
+                <div id="user-info">
+                    <span id="username-display"></span>
+                </div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <!-- 用户状态卡片 -->
+                <div class="status-card" id="status-card">
+                    <h3 style="margin-bottom: 15px;">今日状态</h3>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; color: var(--primary-color);">🔥</div>
+                            <div style="font-size: 12px;">卡路里</div>
+                            <div style="font-weight: bold;">1200/1500</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; color: var(--accent-color);">😴</div>
+                            <div style="font-size: 12px;">睡眠</div>
+                            <div style="font-weight: bold;">7h 30m</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; color: var(--primary-color);">❤️</div>
+                            <div style="font-size: 12px;">亲密值</div>
+                            <div style="font-weight: bold;">85</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3D猫咪区域 -->
+                <div class="card" style="text-align: center; padding: 30px 15px;">
+                    <div style="font-size: 60px; margin-bottom: 15px;">🐱</div>
+                    <p style="color: var(--light-text);">点击与数字喵互动</p>
+                </div>
+                
+                <!-- 功能网格 -->
+                <div class="grid-container">
+                    <div class="grid-item" data-page="cat-health">
+                        <div class="grid-icon">🍽️</div>
+                        <div>猫咪饮食</div>
+                    </div>
+                    <div class="grid-item" data-page="user-health">
+                        <div class="grid-icon">🏃</div>
+                        <div>用户健康</div>
+                    </div>
+                    <div class="grid-item" data-page="lbs-service">
+                        <div class="grid-icon">🏥</div>
+                        <div>附近服务</div>
+                    </div>
+                    <div class="grid-item" data-page="donation">
+                        <div class="grid-icon">❤️</div>
+                        <div>爱心捐赠</div>
+                    </div>
+                    <div class="grid-item" data-page="cat-profile">
+                        <div class="grid-icon">📋</div>
+                        <div>猫咪档案</div>
+                    </div>
+                    <div class="grid-item" data-page="chat">
+                        <div class="grid-icon">💬</div>
+                        <div>聊天互动</div>
+                    </div>
+                    <!-- 新增的两个功能入口 -->
+                    <div class="grid-item" data-page="rescue-adoption">
+                        <div class="grid-icon">🏠</div>
+                        <div>救助领养</div>
+                    </div>
+                    <div class="grid-item" data-page="ai-disease">
+                        <div class="grid-icon">🔬</div>
+                        <div>AI识病</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部导航 -->
+            <div class="bottom-nav">
+                <div class="nav-item active" data-page="home">
+                    <div class="nav-icon">🏠</div>
+                    <div>首页</div>
+                </div>
+                <div class="nav-item" data-page="cat-health">
+                    <div class="nav-icon">🐱</div>
+                    <div>猫咪健康</div>
+                </div>
+                <div class="nav-item" data-page="user-health">
+                    <div class="nav-icon">👤</div>
+                    <div>用户健康</div>
+                </div>
+                <div class="nav-item" data-page="lbs-service">
+                    <div class="nav-icon">🗺️</div>
+                    <div>附近服务</div>
+                </div>
+                <div class="nav-item" data-page="profile">
+                    <div class="nav-icon">👤</div>
+                    <div>我的</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 猫咪健康页面 -->
+        <div id="cat-health-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">猫咪健康</div>
+            </div>
+            
+            <div class="dev-notice">
+                <div class="dev-notice-icon">🔧</div>
+                <h3>功能开发中</h3>
+                <p>猫咪健康管理功能正在紧张开发中，敬请期待！</p>
+            </div>
+        </div>
+
+        <!-- 用户健康页面 -->
+        <div id="user-health-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">用户健康</div>
+            </div>
+            
+            <div class="dev-notice">
+                <div class="dev-notice-icon">🔧</div>
+                <h3>功能开发中</h3>
+                <p>用户健康管理功能正在紧张开发中，敬请期待！</p>
+            </div>
+        </div>
+
+        <!-- 附近服务页面 -->
+        <div id="lbs-service-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">附近服务</div>
+            </div>
+            
+            <div class="dev-notice">
+                <div class="dev-notice-icon">🔧</div>
+                <h3>功能开发中</h3>
+                <p>LBS服务功能正在紧张开发中，敬请期待！</p>
+            </div>
+        </div>
+
+        <!-- 爱心捐赠页面 -->
+        <div id="donation-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">爱心捐赠</div>
+            </div>
+            
+            <div class="dev-notice">
+                <div class="dev-notice-icon">🔧</div>
+                <h3>功能开发中</h3>
+                <p>爱心捐赠功能正在紧张开发中，敬请期待！</p>
+            </div>
+        </div>
+
+        <!-- 猫咪档案页面 -->
+        <div id="cat-profile-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">猫咪档案</div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <div class="card">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="font-size: 60px; margin-right: 15px;">🐱</div>
+                        <div>
+                            <div style="font-weight: bold; font-size: 20px;">咪咪</div>
+                            <div style="font-size: 14px; color: var(--light-text);">英国短毛猫 · 2岁</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold;">4.2kg</div>
+                            <div style="font-size: 12px; color: var(--light-text);">体重</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold;">85%</div>
+                            <div style="font-size: 12px; color: var(--light-text);">健康度</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold;">❤️ 92</div>
+                            <div style="font-size: 12px; color: var(--light-text);">亲密值</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">健康记录</h3>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>疫苗状态</span>
+                            <span style="color: #28a745;">已完成</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--light-text);">下次接种: 2024年6月15日</div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>驱虫记录</span>
+                            <span style="color: #28a745;">已完成</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--light-text);">下次驱虫: 2024年4月20日</div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>体检记录</span>
+                            <span style="color: #ffc107;">待安排</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--light-text);">建议每年一次全面体检</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">饮食偏好</h3>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>主食</span>
+                            <span>皇家室内成猫粮</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>零食</span>
+                            <span>鸡胸肉、猫条</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>过敏食物</span>
+                            <span style="color: #dc3545;">海鲜</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-block">编辑档案</button>
+            </div>
+        </div>
+
+        <!-- 聊天互动页面 -->
+        <div id="chat-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">聊天互动</div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <div class="chat-container">
+                    <div class="messages-container" id="messages-container">
+                        <div class="message cat-message">
+                            <strong>PetFit助手:</strong> 你好！我是PetFit助手，有什么可以帮助你的吗？
+                        </div>
+                        <div class="message user-message">
+                            我的猫咪最近打喷嚏，怎么办？
+                        </div>
+                        <div class="message cat-message">
+                            <strong>PetFit助手:</strong> 猫咪打喷嚏可能是感冒或过敏。建议观察是否有鼻涕、发热等症状。可以尝试用温毛巾轻轻擦拭鼻子，保持环境清洁。如果持续不见好转，建议咨询兽医。
+                        </div>
+                        <div class="message user-message">
+                            附近有推荐的宠物医院吗？
+                        </div>
+                        <div class="message cat-message">
+                            <strong>PetFit助手:</strong> 你可以点击下方"附近服务"查看附近的宠物医院。我们已与合作医院建立联系，可以提供导航和预约服务。
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chat-input" placeholder="输入消息...">
+                        <button class="send-btn" id="send-btn">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人中心页面 -->
+        <div id="profile-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">个人中心</div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <div class="card">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="font-size: 40px; margin-right: 15px;">👤</div>
+                        <div>
+                            <div style="font-weight: bold;" id="profile-username"></div>
+                            <div style="font-size: 12px; color: var(--light-text);" id="profile-email"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <div style="text-align: center; cursor: pointer;" class="profile-stat" data-type="rescue">
+                            <div style="font-weight: bold;">5</div>
+                            <div style="font-size: 12px; color: var(--light-text);">救助记录</div>
+                        </div>
+                        <div style="text-align: center; cursor: pointer;" class="profile-stat" data-type="adoption">
+                            <div style="font-weight: bold;">3</div>
+                            <div style="font-size: 12px; color: var(--light-text);">领养申请</div>
+                        </div>
+                        <div style="text-align: center; cursor: pointer;" class="profile-stat" data-type="coins">
+                            <div style="font-weight: bold;">120</div>
+                            <div style="font-size: 12px; color: var(--light-text);">猫币</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">我的徽章</h3>
+                    <div style="display: flex; justify-content: space-around;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 30px; color: gold;">🏆</div>
+                            <div style="font-size: 12px;">营养达人</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 30px; color: silver;">⭐</div>
+                            <div style="font-size: 12px;">爱心大使</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 30px; color: #cd7f32;">❤️</div>
+                            <div style="font-size: 12px;">救助先锋</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">设置</h3>
+                    <div style="margin-bottom: 10px;">
+                        <button class="btn btn-secondary profile-setting" data-type="edit" style="width: 100%;">编辑个人信息</button>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <button class="btn btn-secondary profile-setting" data-type="notification" style="width: 100%;">通知设置</button>
+                    </div>
+                    <div>
+                        <button id="logout-btn" class="btn btn-primary" style="width: 100%;">退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理员页面 -->
+        <div id="admin-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="admin-auth">←</button>
+                <div class="page-title">管理员面板</div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <div class="admin-panel">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-users">0</div>
+                            <div>注册用户</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="active-users">0</div>
+                            <div>活跃用户</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">用户列表</h3>
+                        <div class="user-list" id="user-list">
+                            <!-- 用户列表将通过JS动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <button id="back-to-login-from-admin" class="btn btn-primary btn-block">返回登录</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 救助领养页面 -->
+        <div id="rescue-adoption-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">救助领养</div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <div class="view-toggle">
+                    <div class="view-option active" data-view="map">地图模式</div>
+                    <div class="view-option" data-view="list">列表模式</div>
+                </div>
+                
+                <!-- 地图模式 -->
+                <div id="map-view" class="view-content">
+                    <div class="map-container">
+                        <!-- 模拟地图上的标记 -->
+                        <div class="map-marker rescue-marker" style="top: 30%; left: 40%;">🏠</div>
+                        <div class="map-marker rescue-marker" style="top: 60%; left: 60%;">🏠</div>
+                        <div class="map-marker hospital-marker" style="top: 45%; left: 30%;">🏥</div>
+                        <div class="map-marker hospital-marker" style="top: 70%; left: 50%;">🏥</div>
+                        <div class="map-marker rescue-marker" style="top: 25%; left: 70%;">🏠</div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">图例说明</h3>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div class="map-marker rescue-marker" style="position: static; transform: none; margin-right: 10px;">🏠</div>
+                            <div>救助站/领养中心</div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div class="map-marker hospital-marker" style="position: static; transform: none; margin-right: 10px;">🏥</div>
+                            <div>宠物医院</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 列表模式 -->
+                <div id="list-view" class="view-content" style="display: none;">
+                    <div class="location-list">
+                        <div class="location-item">
+                            <div class="location-info">
+                                <div class="location-name">爱心宠物救助中心</div>
+                                <div class="location-details">提供流浪猫救助和领养服务</div>
+                                <div class="location-count">可领养: 5只</div>
+                            </div>
+                            <div class="location-distance">1.2km</div>
+                        </div>
+                        <div class="location-item">
+                            <div class="location-info">
+                                <div class="location-name">阳光宠物医院</div>
+                                <div class="location-details">24小时急诊，专业宠物医疗</div>
+                            </div>
+                            <div class="location-distance">0.8km</div>
+                        </div>
+                        <div class="location-item">
+                            <div class="location-info">
+                                <div class="location-name">流浪猫天使之家</div>
+                                <div class="location-details">专注流浪猫救助和领养</div>
+                                <div class="location-count">可领养: 3只</div>
+                            </div>
+                            <div class="location-distance">2.1km</div>
+                        </div>
+                        <div class="location-item">
+                            <div class="location-info">
+                                <div class="location-name">康贝宠物诊所</div>
+                                <div class="location-details">专业猫咪诊疗，疫苗接种</div>
+                            </div>
+                            <div class="location-distance">1.5km</div>
+                        </div>
+                        <div class="location-item">
+                            <div class="location-info">
+                                <div class="location-name">小动物保护协会</div>
+                                <div class="location-details">流浪动物救助和领养服务</div>
+                                <div class="location-count">可领养: 8只</div>
+                            </div>
+                            <div class="location-distance">3.2km</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-block" style="margin-top: 20px;">一键求助</button>
+            </div>
+        </div>
+        
+        <!-- AI识病页面 -->
+        <div id="ai-disease-page" class="page">
+            <div class="header">
+                <button class="back-btn" data-target="home">←</button>
+                <div class="page-title">AI识病</div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">猫咪健康识别</h3>
+                    <p style="color: var(--light-text); margin-bottom: 20px;">上传猫咪照片，AI将帮助识别可能的健康问题</p>
+                    
+                    <div class="ai-options">
+                        <div class="ai-option" id="camera-option">
+                            <div class="ai-icon">📷</div>
+                            <div>拍照识别</div>
+                        </div>
+                        <div class="ai-option" id="upload-option">
+                            <div class="ai-icon">📁</div>
+                            <div>上传图片</div>
+                        </div>
+                    </div>
+                    
+                    <div class="free-note">每月3次免费识别</div>
+                    
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-icon">📁</div>
+                        <div>点击或拖拽图片到这里</div>
+                        <div style="font-size: 12px; color: var(--light-text); margin-top: 10px;">支持 JPG、PNG 格式，最大 5MB</div>
+                    </div>
+                    
+                    <input type="file" id="image-input" accept="image/*" style="display: none;">
+                    
+                    <img id="image-preview" class="image-preview" alt="预览图片">
+                    
+                    <button id="analyze-btn" class="btn btn-primary btn-block" style="display: none;">开始分析</button>
+                    
+                    <div id="analysis-result" class="analysis-result">
+                        <div class="analysis-title">AI识别结果</div>
+                        <div class="disease-item">
+                            <div class="disease-name">猫藓</div>
+                            <div class="disease-probability">
+                                <span>可能性</span>
+                                <div class="probability-bar">
+                                    <div class="probability-fill" style="width: 78%;"></div>
+                                </div>
+                                <span class="probability-text">78%</span>
+                            </div>
+                            <div class="disease-suggestion">建议：保持环境干燥清洁，使用抗真菌药物，隔离患病猫咪</div>
+                        </div>
+                        <div class="disease-item">
+                            <div class="disease-name">过敏性皮炎</div>
+                            <div class="disease-probability">
+                                <span>可能性</span>
+                                <div class="probability-bar">
+                                    <div class="probability-fill" style="width: 45%;"></div>
+                                </div>
+                                <span class="probability-text">45%</span>
+                            </div>
+                            <div class="disease-suggestion">建议：排查过敏原，避免接触可能引起过敏的物质</div>
+                        </div>
+                        <div class="disease-item">
+                            <div class="disease-name">跳蚤过敏</div>
+                            <div class="disease-probability">
+                                <span>可能性</span>
+                                <div class="probability-bar">
+                                    <div class="probability-fill" style="width: 30%;"></div>
+                                </div>
+                                <span class="probability-text">30%</span>
+                            </div>
+                            <div class="disease-suggestion">建议：定期驱虫，清洁环境，使用跳蚤预防产品</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 开发中提示模态框 -->
+    <div id="dev-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">功能开发中</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="dev-notice">
+                <div class="dev-notice-icon">🔧</div>
+                <h3>功能开发中</h3>
+                <p id="dev-modal-text">此功能正在紧张开发中，敬请期待！</p>
+            </div>
+            <button id="close-dev-modal" class="btn btn-primary btn-block">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 用户数据管理
+        class UserManager {
+            constructor() {
+                this.users = JSON.parse(localStorage.getItem('petfitUsers')) || [];
+                this.currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+                this.loginHistory = JSON.parse(localStorage.getItem('loginHistory')) || [];
+                this.adminPassword = "admin123"; // 管理员密码
+            }
+            
+            // 注册用户
+            register(username, email, password) {
+                // 检查用户名是否已存在
+                if (this.users.find(user => user.username === username)) {
+                    return { success: false, message: '用户名已存在' };
+                }
+                
+                // 创建新用户
+                const newUser = {
+                    id: Date.now().toString(),
+                    username,
+                    email,
+                    password, // 注意：实际应用中应对密码进行哈希处理
+                    registerDate: new Date().toISOString(),
+                    lastLogin: null
+                };
+                
+                this.users.push(newUser);
+                this.saveUsers();
+                
+                return { success: true, message: '注册成功' };
+            }
+            
+            // 用户登录
+            login(username, password) {
+                const user = this.users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    user.lastLogin = new Date().toISOString();
+                    this.currentUser = user;
+                    this.saveUsers();
+                    this.saveCurrentUser();
+                    
+                    // 记录登录历史
+                    this.loginHistory.push({
+                        username,
+                        loginTime: new Date().toISOString()
+                    });
+                    localStorage.setItem('loginHistory', JSON.stringify(this.loginHistory));
+                    
+                    return { success: true, message: '登录成功', user };
+                } else {
+                    return { success: false, message: '用户名或密码错误' };
+                }
+            }
+            
+            // 管理员登录
+            adminLogin(password) {
+                if (password === this.adminPassword) {
+                    return { success: true, message: '管理员登录成功' };
+                } else {
+                    return { success: false, message: '管理员密码错误' };
+                }
+            }
+            
+            // 用户登出
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('currentUser');
+            }
+            
+            // 获取所有用户
+            getAllUsers() {
+                return this.users;
+            }
+            
+            // 获取活跃用户数（最近7天登录过的用户）
+            getActiveUsersCount() {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                
+                return this.users.filter(user => {
+                    if (!user.lastLogin) return false;
+                    return new Date(user.lastLogin) > sevenDaysAgo;
+                }).length;
+            }
+            
+            // 保存用户数据到localStorage
+            saveUsers() {
+                localStorage.setItem('petfitUsers', JSON.stringify(this.users));
+            }
+            
+            // 保存当前用户到localStorage
+            saveCurrentUser() {
+                localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+            }
+        }
+
+        // 页面管理器
+        class PageManager {
+            constructor() {
+                this.pages = document.querySelectorAll('.page');
+                this.navItems = document.querySelectorAll('.nav-item');
+                this.gridItems = document.querySelectorAll('.grid-item');
+                this.backButtons = document.querySelectorAll('.back-btn');
+                
+                this.initEventListeners();
+            }
+            
+            // 显示指定页面
+            showPage(pageId) {
+                // 隐藏所有页面
+                this.pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // 显示目标页面
+                const targetPage = document.getElementById(pageId);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                }
+                
+                // 更新导航激活状态
+                this.updateNavActiveState(pageId);
+            }
+            
+            // 更新导航激活状态
+            updateNavActiveState(pageId) {
+                this.navItems.forEach(item => {
+                    item.classList.remove('active');
+                    
+                    const dataPage = item.getAttribute('data-page');
+                    if (dataPage && pageId === `${dataPage}-page`) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+            
+            // 初始化事件监听
+            initEventListeners() {
+                // 导航项点击事件
+                this.navItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const pageId = item.getAttribute('data-page') + '-page';
+                        this.showPage(pageId);
+                    });
+                });
+                
+                // 网格项点击事件
+                this.gridItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const pageId = item.getAttribute('data-page') + '-page';
+                        this.showPage(pageId);
+                    });
+                });
+                
+                // 返回按钮点击事件
+                this.backButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetPage = button.getAttribute('data-target') + '-page';
+                        this.showPage(targetPage);
+                    });
+                });
+            }
+        }
+
+        // 聊天功能
+        class ChatManager {
+            constructor() {
+                this.messagesContainer = document.getElementById('messages-container');
+                this.chatInput = document.getElementById('chat-input');
+                this.sendBtn = document.getElementById('send-btn');
+                
+                this.initEventListeners();
+            }
+            
+            initEventListeners() {
+                this.sendBtn.addEventListener('click', () => {
+                    this.sendMessage();
+                });
+                
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage();
+                    }
+                });
+            }
+            
+            sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (message === '') return;
+                
+                // 添加用户消息
+                this.addMessage(message, 'user');
+                
+                // 清空输入框
+                this.chatInput.value = '';
+                
+                // 模拟AI回复
+                setTimeout(() => {
+                    this.addMessage(this.generateResponse(message), 'cat');
+                }, 1000);
+            }
+            
+            addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                
+                if (sender === 'cat') {
+                    messageDiv.innerHTML = `<strong>PetFit助手:</strong> ${text}`;
+                } else {
+                    messageDiv.textContent = text;
+                }
+                
+                this.messagesContainer.appendChild(messageDiv);
+                
+                // 滚动到底部
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+            
+            generateResponse(userMessage) {
+                const responses = {
+                    'hello': '你好！我是PetFit助手，有什么可以帮助你的吗？',
+                    'hi': '你好！我是PetFit助手，有什么可以帮助你的吗？',
+                    '你好': '你好！我是PetFit助手，有什么可以帮助你的吗？',
+                    '猫咪': '关于猫咪的问题，我可以帮你解答健康、饮食、行为等方面的问题。',
+                    '健康': '猫咪健康管理是我们的核心功能之一，你可以在"猫咪健康"页面记录和查看相关信息。',
+                    '饮食': '合理的饮食对猫咪健康很重要，你可以在"猫咪饮食"页面记录和分析猫咪的饮食情况。',
+                    '医院': '你可以在"附近服务"页面查找附近的宠物医院和诊所。',
+                    '救助': '我们与多家救助站合作，你可以在"爱心捐赠"页面了解更多信息。',
+                    'default': '我理解你的问题，但作为演示版本，我的回答有限。在实际应用中，我会提供更专业的建议。'
+                };
+                
+                userMessage = userMessage.toLowerCase();
+                
+                for (const [keyword, response] of Object.entries(responses)) {
+                    if (userMessage.includes(keyword)) {
+                        return response;
+                    }
+                }
+                
+                return responses.default;
+            }
+        }
+
+        // 模态框管理器
+        class ModalManager {
+            constructor() {
+                this.modal = document.getElementById('dev-modal');
+                this.closeModalBtn = document.getElementById('close-dev-modal');
+                this.closeModalX = document.querySelector('.close-modal');
+                this.modalText = document.getElementById('dev-modal-text');
+                
+                this.initEventListeners();
+            }
+            
+            initEventListeners() {
+                this.closeModalBtn.addEventListener('click', () => {
+                    this.hideModal();
+                });
+                
+                this.closeModalX.addEventListener('click', () => {
+                    this.hideModal();
+                });
+                
+                // 点击模态框外部关闭
+                window.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.hideModal();
+                    }
+                });
+            }
+            
+            showModal(text = '此功能正在紧张开发中，敬请期待！') {
+                this.modalText.textContent = text;
+                this.modal.style.display = 'flex';
+            }
+            
+            hideModal() {
+                this.modal.style.display = 'none';
+            }
+        }
+
+        // 救助领养页功能
+        class RescueAdoptionManager {
+            constructor() {
+                this.viewOptions = document.querySelectorAll('.view-option');
+                this.mapView = document.getElementById('map-view');
+                this.listView = document.getElementById('list-view');
+                
+                this.initEventListeners();
+            }
+            
+            initEventListeners() {
+                this.viewOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        // 更新选项状态
+                        this.viewOptions.forEach(opt => opt.classList.remove('active'));
+                        option.classList.add('active');
+                        
+                        // 切换视图
+                        const view = option.getAttribute('data-view');
+                        if (view === 'map') {
+                            this.mapView.style.display = 'block';
+                            this.listView.style.display = 'none';
+                        } else {
+                            this.mapView.style.display = 'none';
+                            this.listView.style.display = 'block';
+                        }
+                    });
+                });
+            }
+        }
+
+        // AI识病页功能
+        class AIDiseaseManager {
+            constructor() {
+                this.cameraOption = document.getElementById('camera-option');
+                this.uploadOption = document.getElementById('upload-option');
+                this.uploadArea = document.getElementById('upload-area');
+                this.imageInput = document.getElementById('image-input');
+                this.imagePreview = document.getElementById('image-preview');
+                this.analyzeBtn = document.getElementById('analyze-btn');
+                this.analysisResult = document.getElementById('analysis-result');
+                
+                this.initEventListeners();
+            }
+            
+            initEventListeners() {
+                // 拍照选项点击
+                this.cameraOption.addEventListener('click', () => {
+                    alert('在移动设备上，此功能将调用摄像头拍照。在桌面设备上，请使用上传图片功能。');
+                });
+                
+                // 上传选项点击
+                this.uploadOption.addEventListener('click', () => {
+                    this.imageInput.click();
+                });
+                
+                // 上传区域点击
+                this.uploadArea.addEventListener('click', () => {
+                    this.imageInput.click();
+                });
+                
+                // 文件选择变化
+                this.imageInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        this.displayImagePreview(file);
+                    }
+                });
+                
+                // 拖放功能
+                this.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.style.borderColor = 'var(--primary-color)';
+                    this.uploadArea.style.backgroundColor = '#f9f9f9';
+                });
+                
+                this.uploadArea.addEventListener('dragleave', () => {
+                    this.uploadArea.style.borderColor = '#ddd';
+                    this.uploadArea.style.backgroundColor = 'white';
+                });
+                
+                this.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.style.borderColor = '#ddd';
+                    this.uploadArea.style.backgroundColor = 'white';
+                    
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        this.displayImagePreview(file);
+                    } else {
+                        alert('请上传图片文件！');
+                    }
+                });
+                
+                // 分析按钮点击
+                this.analyzeBtn.addEventListener('click', () => {
+                    this.performAnalysis();
+                });
+            }
+            
+            displayImagePreview(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.imagePreview.src = e.target.result;
+                    this.imagePreview.style.display = 'block';
+                    this.analyzeBtn.style.display = 'block';
+                    this.analysisResult.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            performAnalysis() {
+                // 显示加载状态
+                this.analyzeBtn.textContent = '分析中...';
+                this.analyzeBtn.disabled = true;
+                
+                // 模拟AI分析过程
+                setTimeout(() => {
+                    this.analyzeBtn.textContent = '开始分析';
+                    this.analyzeBtn.disabled = false;
+                    this.analysisResult.style.display = 'block';
+                    
+                    // 滚动到结果区域
+                    this.analysisResult.scrollIntoView({ behavior: 'smooth' });
+                }, 2000);
+            }
+        }
+
+        // 应用初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            const userManager = new UserManager();
+            const pageManager = new PageManager();
+            const chatManager = new ChatManager();
+            const modalManager = new ModalManager();
+            const rescueAdoptionManager = new RescueAdoptionManager();
+            const aiDiseaseManager = new AIDiseaseManager();
+            
+            // 如果用户已登录，直接显示首页
+            if (userManager.currentUser) {
+                showHomePage(userManager.currentUser);
+            }
+            
+            // 登录按钮事件
+            document.getElementById('login-btn').addEventListener('click', function() {
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                
+                if (!username || !password) {
+                    alert('请输入用户名和密码');
+                    return;
+                }
+                
+                const result = userManager.login(username, password);
+                
+                if (result.success) {
+                    showHomePage(result.user);
+                } else {
+                    alert(result.message);
+                }
+            });
+            
+            // 注册按钮事件
+            document.getElementById('register-btn').addEventListener('click', function() {
+                pageManager.showPage('register-page');
+            });
+            
+            // 返回登录按钮事件
+            document.getElementById('back-to-login-btn').addEventListener('click', function() {
+                pageManager.showPage('login-page');
+            });
+            
+            // 完成注册按钮事件
+            document.getElementById('complete-register-btn').addEventListener('click', function() {
+                const username = document.getElementById('reg-username').value;
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                const confirmPassword = document.getElementById('reg-confirm-password').value;
+                
+                if (!username || !email || !password || !confirmPassword) {
+                    alert('请填写所有字段');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+                
+                const result = userManager.register(username, email, password);
+                
+                if (result.success) {
+                    alert(result.message);
+                    pageManager.showPage('login-page');
+                    
+                    // 清空注册表单
+                    document.getElementById('reg-username').value = '';
+                    document.getElementById('reg-email').value = '';
+                    document.getElementById('reg-password').value = '';
+                    document.getElementById('reg-confirm-password').value = '';
+                } else {
+                    alert(result.message);
+                }
+            });
+            
+            // 管理员入口事件
+            document.getElementById('admin-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                pageManager.showPage('admin-auth-page');
+            });
+            
+            // 管理员验证按钮事件
+            document.getElementById('admin-login-btn').addEventListener('click', function() {
+                const password = document.getElementById('admin-password').value;
+                
+                if (!password) {
+                    alert('请输入管理员密码');
+                    return;
+                }
+                
+                const result = userManager.adminLogin(password);
+                
+                if (result.success) {
+                    showAdminPage(userManager);
+                } else {
+                    alert(result.message);
+                }
+            });
+            
+            // 从管理员验证页面返回登录
+            document.getElementById('back-to-login-from-auth').addEventListener('click', function() {
+                pageManager.showPage('login-page');
+            });
+            
+            // 从管理员页面返回登录
+            document.getElementById('back-to-login-from-admin').addEventListener('click', function() {
+                pageManager.showPage('login-page');
+            });
+            
+            // 退出登录按钮事件
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                userManager.logout();
+                pageManager.showPage('login-page');
+            });
+            
+            // 首页状态卡片点击事件
+            document.getElementById('status-card').addEventListener('click', function() {
+                modalManager.showModal('健康数据统计功能正在开发中，将提供更详细的卡路里、睡眠和亲密值分析。');
+            });
+            
+            // 个人中心统计项点击事件
+            document.querySelectorAll('.profile-stat').forEach(item => {
+                item.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    let text = '';
+                    
+                    switch(type) {
+                        case 'rescue':
+                            text = '救助记录功能正在开发中，将展示您参与的所有救助活动记录。';
+                            break;
+                        case 'adoption':
+                            text = '领养申请功能正在开发中，将展示您的领养申请状态和历史。';
+                            break;
+                        case 'coins':
+                            text = '猫币系统正在开发中，将用于兑换宠物用品和捐赠。';
+                            break;
+                    }
+                    
+                    modalManager.showModal(text);
+                });
+            });
+            
+            // 个人中心设置项点击事件
+            document.querySelectorAll('.profile-setting').forEach(item => {
+                item.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    let text = '';
+                    
+                    switch(type) {
+                        case 'edit':
+                            text = '个人信息编辑功能正在开发中，将允许您修改个人资料。';
+                            break;
+                        case 'notification':
+                            text = '通知设置功能正在开发中，将允许您自定义接收哪些通知。';
+                            break;
+                    }
+                    
+                    modalManager.showModal(text);
+                });
+            });
+            
+            // 显示首页
+            function showHomePage(user) {
+                document.getElementById('username-display').textContent = user.username;
+                document.getElementById('profile-username').textContent = user.username;
+                document.getElementById('profile-email').textContent = user.email;
+                pageManager.showPage('home-page');
+            }
+            
+            // 显示管理员页面
+            function showAdminPage(userManager) {
+                const users = userManager.getAllUsers();
+                const activeUsers = userManager.getActiveUsersCount();
+                
+                document.getElementById('total-users').textContent = users.length;
+                document.getElementById('active-users').textContent = activeUsers;
+                
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = '';
+                
+                users.forEach(user => {
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    
+                    const loginTime = user.lastLogin ? 
+                        new Date(user.lastLogin).toLocaleDateString('zh-CN') : 
+                        '从未登录';
+                    
+                    userItem.innerHTML = `
+                        <div>${user.username}</div>
+                        <div style="color: var(--light-text); font-size: 12px;">${loginTime}</div>
+                    `;
+                    
+                    userList.appendChild(userItem);
+                });
+                
+                pageManager.showPage('admin-page');
+            }
+        });
+    </script>
+</body>
+</html>
